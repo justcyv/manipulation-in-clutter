@@ -122,16 +122,16 @@ def getCollisionList(currentMainObj,currentList):
     traj = manipprob.MoveManipulator(sol,execute=False,outputtrajobj=True)
     
     #interpolating trajectory
-    numWP = traj.GetNumWaypoints()
-    wp = []
-    wp.append(traj.GetWaypoint(-numWP)[0:7])
+    numWP = traj.GetNumWaypoints() # getting the number of waypoints
+    wp = [] # initializing an empty list for storing interpolated waypoints
+    wp.append(traj.GetWaypoint(-numWP)[0:7]) # append the first waypoint to the list
     for i in range (numWP,1,-1):
-        current = traj.GetWaypoint(-i)[0:7]
-        following = traj.GetWaypoint(-i+1)[0:7]
-        inc = numpy.subtract(following,current)
+        current = traj.GetWaypoint(-i)[0:7]  # assign the current waypoint
+        following = traj.GetWaypoint(-i+1)[0:7] # assign the next waipoint
+        inc = numpy.subtract(following,current) # calculate the size of an increment
         inc = numpy.divide(inc,20)
         for j in range (1,20):
-            wp.append(numpy.add(current,j*inc))
+            wp.append(numpy.add(current,j*inc)) # append interpolated waypoints to the list
         wp.append(following)
 
     #enabling objects
@@ -151,9 +151,11 @@ def getCollisionList(currentMainObj,currentList):
     return collObj
 
 raw_input() # press enter to begin
+
+# making a list of obstacles
 complete = False
-collObj = []
-newCollisions = []
+collObj = [] # initializing an empty list for storing all blocking objects
+newCollisions = [] # an empty list for storing current colliding objects to be added to the collObj list
 newMain = mainObj
 while not complete:
     size = len(collObj)
@@ -166,7 +168,7 @@ while not complete:
     newMain = collObj[len(collObj)-1]
     if (size== len(collObj)):
         complete = True
-    robot.SetDOFValues([0,0,0,0,0,0,0],manip.GetArmIndices())
+    robot.SetDOFValues([0,0,0,0,0,0,0],manip.GetArmIndices()) # bring the robot arm back to its start position
     
 
     
@@ -180,7 +182,7 @@ for obj in objects:
 #removing all obstacles
 for obj in collObj:
     target = obj
-    pose = target.GetTransformPose()#collObj = getCollisionList(mainObj,collObj) + collObj
+    pose = target.GetTransformPose()
 
     wTo = target.GetTransform()
     #finding a valid grasp
@@ -198,7 +200,7 @@ for obj in collObj:
     taskprob.CloseFingers() # close fingers until collision
     robot.WaitForController(0) # wait
     robot.Grab(target)
-    # move manipulator to all zeros, set jitter to 0.04 since cup is initially colliding with table
+    # move manipulator to all zeros, set jitter to 0.15 since cup is initially colliding with table
     manipprob.MoveManipulator(numpy.zeros(len(manip.GetArmIndices())),jitter=0.15)
     robot.WaitForController(0) # wait
     taskprob.ReleaseFingers(target)
